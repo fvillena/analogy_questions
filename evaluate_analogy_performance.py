@@ -16,6 +16,7 @@ parser.add_argument('--dataset', help='dataset location')
 parser.add_argument('--k', help='k')
 parser.add_argument('--binary', help='binary model')
 parser.add_argument('--normalize', help='strip accents')
+parser.add_argument('--unique', help='unique words in each question')
 
 args=parser.parse_args()
 
@@ -29,14 +30,20 @@ if args.binary == "True":
     BINARY = True
 if args.binary == "False":
     BINARY = False
+
 if args.normalize == "True":
     NORMALIZE = True
 if args.normalize == "False":
     NORMALIZE = False 
 
+if args.unique == "True":
+    UNIQUE = True
+if args.unique == "False":
+    UNIQUE = False 
+
 logger.info("arguments are: {}".format(args))
 
-RESULT_LOCATION = "{}-{}-{}-{}-{}_result.json".format(MODEL_LOCATION,DATASET_LOCATION,LIMIT,K,NORMALIZE)
+RESULT_LOCATION = "{}-{}-{}-{}-{}-{}_result.json".format(MODEL_LOCATION,DATASET_LOCATION,LIMIT,K,NORMALIZE,UNIQUE)
 
 import re
 def mreplace(s, chararray, newchararray):
@@ -92,9 +99,16 @@ class AnalogyEvaluator:
                 if all_in(relation_vocab,self.vocabulary):
                     relations_in_vocab.append(relation)
                 elif NORMALIZE & all_in(normalizer(relation_vocab),self.vocabulary):
-                    relations_in_vocab.append([normalizer(relation[0]),normalizer(relation[1])])
+                    relations_in_vocab.append([list(set(normalizer(relation[0]))),list(set(normalizer(relation[1])))])
             permutations = itertools.permutations(relations_in_vocab,2)
             self.questions[key] = list(permutations)
+            if UNIQUE:
+                permutations_unique = []
+                for permutation in self.questions[key]:
+                    permutation_vocab = list(itertools.chain.from_iterable(permutation[0])) + list(itertools.chain.from_iterable(permutation[1]))
+                    if len(permutation_vocab) == len(set(permutation_vocab)):
+                        permutations_unique.append(permutation)
+                self.questions[key] = permutations_unique
             logger.info("{} has {} relations, where {} are in vocabulary. {} has {} questions".format(
                 key,len(val['words']),len(relations_in_vocab),key,len(self.questions[key])))
     def evaluate(self):
