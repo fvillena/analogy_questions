@@ -28,4 +28,4 @@ data[data.metric == "accuracy"].pivot("group", "embedding", "val").plot(kind='ba
 plt.ylabel("Accuracy")
 plt.xlabel("Group")
 plt.tight_layout()
-plt.show()
+plt.savefig("figure.pdf")
