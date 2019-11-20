@@ -102,6 +102,8 @@ class AnalogyEvaluator:
                     relations_in_vocab.append([list(set(normalizer(relation[0]))),list(set(normalizer(relation[1])))])
             permutations = itertools.permutations(relations_in_vocab,2)
             self.questions[key] = list(permutations)
+            logger.info("{} has {} relations, where {} are in vocabulary. {} has {} questions".format(
+                key,len(val['words']),len(relations_in_vocab),key,len(self.questions[key])))
             if UNIQUE:
                 permutations_unique = []
                 for permutation in self.questions[key]:
@@ -109,8 +111,8 @@ class AnalogyEvaluator:
                     if len(permutation_vocab) == len(set(permutation_vocab)):
                         permutations_unique.append(permutation)
                 self.questions[key] = permutations_unique
-            logger.info("{} has {} relations, where {} are in vocabulary. {} has {} questions".format(
-                key,len(val['words']),len(relations_in_vocab),key,len(self.questions[key])))
+                logger.info("{} has {} unique questions".format(key,len(self.questions[key])))
+            
     def evaluate(self):
         logger.info('evaluating model')
         self.correct = {}
